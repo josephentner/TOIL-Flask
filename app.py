@@ -55,9 +55,7 @@ def get_data(gene, diseases):
     data["Sample"] = samples
     data["Study"] = data["Sample"].apply(lambda x: x.split("-")[0])
     data["Expression"] = expression
-    data["Sample Type"] = sample_type
     data["Disease/Tissue"] = disease_tissue
-    data["Study/Sample Type"] = data.apply(lambda x: x["Study"] + ": " + x["Sample Type"], axis=1)
     data["Disease/Tissue"] = data["Disease/Tissue"].apply(lambda x : x.split(" - ")[0] if x is not None else x )
     
     # filter data 
