@@ -1,0 +1,4 @@
+flask
+xenaPython
+pandas
+gunicorn
