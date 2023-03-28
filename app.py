@@ -29,7 +29,7 @@ def get_field(dataset, samples, probe):
 
     return field_values
 
-def get_data(gene, diseases, tissues, sample_types):
+def get_data(gene, diseases):
     """
     Gets expression results and relevant metadata for all samples for a specific gene
 
@@ -61,9 +61,12 @@ def get_data(gene, diseases, tissues, sample_types):
     data["Disease/Tissue"] = data["Disease/Tissue"].apply(lambda x : x.split(" - ")[0] if x is not None else x )
     
     # filter data 
-    normal_data = data[(data["Study"] == "GTEX") & (data["Sample Type"].isin(sample_types)) & data["Disease/Tissue"].isin(tissues)]
-    cancer_data = data[(data["Disease/Tissue"].isin(list(diseases))) & data["Sample Type"].isin(sample_types)]
-    graph_data = pd.concat([cancer_data, normal_data], axis=0)
+    graph_data = data[(data["Disease/Tissue"].isin(list(diseases)))]
+    
+    # normal_data = data[(data["Study"] == "GTEX") & (data["Sample Type"].isin(sample_types)) & data["Disease/Tissue"].isin(tissues)]
+    # cancer_data = data[(data["Disease/Tissue"].isin(list(diseases))) & data["Sample Type"].isin(sample_types)]
+    # graph_data = pd.concat([cancer_data, normal_data], axis=0)
+    
     
     return graph_data
 
@@ -113,11 +116,12 @@ app = Flask(__name__)
 def layout():
     return 'Hello World'
 
-# @app.route('/data', methods=['GET'])
-# def send_data():
-#     gene = request.args.get('gene', default='ERBB2', type=str)
-#     data = get_data(gene)
-#     return data.to_json()
+@app.route('/data', methods=['GET'])
+def send_data():
+    diseases = request.args.get('disease', default=['Breast Invasive Carcinoma'], type=str)
+    gene = request.args.get('gene', default='ERBB2', type=str)
+    data = get_data(gene, diseases)
+    return data.to_json()
 
 @app.route('/genes', methods=['GET'])
 def send_genes():
