@@ -29,7 +29,7 @@ def get_field(dataset, samples, probe):
 
     return field_values
 
-def get_data(gene, diseases):
+def get_data(gene, gene2, diseases):
     """
     Gets expression results and relevant metadata for all samples for a specific gene
 
@@ -44,10 +44,9 @@ def get_data(gene, diseases):
     dataset = "TcgaTargetGtex_RSEM_Hugo_norm_count"
     samples = xena.dataset_samples(host, dataset, None)
     expression = xena.dataset_gene_probes_values(host, dataset, samples, gene)[1][0]
-
+    
     # get relevant metadata (sample type and disease/tissue)
     dataset = "TcgaTargetGTEX_phenotype.txt"
-    sample_type = get_field(dataset, samples, "_sample_type")
     disease_tissue = get_field(dataset, samples, "primary disease or tissue")
 
     # create DataFrame, clean data results, and store data
@@ -58,13 +57,16 @@ def get_data(gene, diseases):
     data["Disease/Tissue"] = disease_tissue
     data["Disease/Tissue"] = data["Disease/Tissue"].apply(lambda x : x.split(" - ")[0] if x is not None else x )
     
+    if gene2 != '':
+        expression2 = xena.data_gene_probes_values(host, dataset, samples, gene2)[1][0]
+        data["Expression2"] = expression2
+
     # filter data 
     graph_data = data[(data["Disease/Tissue"].isin(list(diseases)))]
     
     # normal_data = data[(data["Study"] == "GTEX") & (data["Sample Type"].isin(sample_types)) & data["Disease/Tissue"].isin(tissues)]
     # cancer_data = data[(data["Disease/Tissue"].isin(list(diseases))) & data["Sample Type"].isin(sample_types)]
     # graph_data = pd.concat([cancer_data, normal_data], axis=0)
-    
     
     return graph_data
 
@@ -118,7 +120,8 @@ def layout():
 def send_data():
     diseases = request.args.get('disease', default=['Breast Invasive Carcinoma'], type=str)
     gene = request.args.get('gene', default='ERBB2', type=str)
-    data = get_data(gene, diseases)
+    gene2 = request.args.get('gene2', default='', type=str)
+    data = get_data(gene, gene2, diseases)
     return data.to_json()
 
 @app.route('/genes', methods=['GET'])
